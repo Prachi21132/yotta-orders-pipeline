@@ -5,13 +5,26 @@ import csv
 from pathlib import Path
 from datetime import datetime
 import sys
+import hashlib
+
+
+def calculate_file_hash(file_path):
+    sha256 = hashlib.sha256()
+
+    with open(file_path, "rb") as file:
+        for chunk in iter(lambda: file.read(4096), b""):
+            sha256.update(chunk)
+
+    return sha256.hexdigest()
 
 # 1. Define the input file
 #INPUT_FILE = Path("data/orders.csv")
 #INPUT_FILE = Path("data/orders_test_invalid.csv")
 #INPUT_FILE = Path("data/orders_test.csv")
 #INPUT_FILE = Path("data/orders_test2.csv")
-INPUT_FILE = Path("data/orders_late.csv")
+#INPUT_FILE = Path("data/orders_late.csv")
+#INPUT_FILE = Path("data/orders_copy.csv")
+INPUT_FILE = Path("data/orders.csv")
 # 2. Define output folders
 
 RAW_FOLDER = Path("data/raw")
@@ -39,26 +52,35 @@ VALID_FOLDER.mkdir(parents=True, exist_ok=True)
 CURATED_FOLDER.mkdir(parents=True, exist_ok=True)
 # 3.1 Read previously processed files
 
-processed_files = []
+# 3.1 Read previously processed file hashes
+
+processed_hashes = []
 
 with open(METADATA_FILE, "r", newline="") as file:
-
     reader = csv.DictReader(file)
 
     for row in reader:
-        processed_files.append(row["file_name"])
+        file_hash = row.get("file_hash", "")
 
-print("Previously processed files:", processed_files)
-# 3.2 Check whether the input file was already processed
+        if file_hash:
+            processed_hashes.append(file_hash)
 
-input_file_name = INPUT_FILE.name
+print("Previously processed file hashes:", processed_hashes)
 
-if input_file_name in processed_files:
+# 3.2 Calculate hash of the current input file
 
-    print("Duplicate file detected:", input_file_name)
+input_file_hash = calculate_file_hash(INPUT_FILE)
+
+# 3.3 Check whether the file content was already processed
+
+if input_file_hash in processed_hashes:
+
+    print("Duplicate file content detected.")
     print("This file has already been processed.")
 
     sys.exit()
+
+
 
 # 4. Read the source data
 with open(INPUT_FILE, "r", newline="") as file:
@@ -244,14 +266,16 @@ with open(METADATA_FILE, "a", newline="") as file:
 
     writer = csv.DictWriter(
         file,
-        fieldnames=["file_name", "processed_at", "record_count"]
+        fieldnames=["file_name", "processed_at", "record_count", "file_hash"]
+        #fieldnames=["file_name", "processed_at", "record_count"]
     )
 
     writer.writerow({
-        "file_name": INPUT_FILE.name,
-        "processed_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "record_count": len(orders)
-    })
+    "file_name": INPUT_FILE.name,
+    "processed_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "record_count": len(orders),
+    "file_hash": input_file_hash
+})
 
 print("File processing history updated!")
 

@@ -1,6 +1,11 @@
-file_name,processed_at,record_count
+file_name,processed_at,record_count,file_hash
 orders.csv,2026-11-07 02:35:57,100
 orders_test.csv,2026-11-07 02:38:10,100
 orders_test2.csv,2026-11-07 02:46:43,100
 orders_late.csv,2026-11-07 02:49:07,100
 orders_test_invalid.csv,2026-11-07 02:53:42,100
+orders_late.csv,2026-11-07 03:06:52,100,e336c2003bf4342b496cf18c5f02b3d684eaa44cb06404e5493fafd8d69e7c97
+orders_late.csv,2026-11-07 03:07:10,100,e336c2003bf4342b496cf18c5f02b3d684eaa44cb06404e5493fafd8d69e7c97
+orders_test_invalid.csv,2026-11-07 03:07:10,100,06de6e97ab68c60fe48269c1fbcc3c4a50024c96eee809d7de6cc8a7602c46c0
+orders_late.csv,2026-11-07 03:07:11,100,e336c2003bf4342b496cf18c5f02b3d684eaa44cb06404e5493fafd8d69e7c97
+orders_late.csv,2026-11-07 03:07:40,100,e336c2003bf4342b496cf18c5f02b3d684eaa44cb06404e5493fafd8d69e7c97

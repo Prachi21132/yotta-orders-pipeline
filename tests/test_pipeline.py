@@ -78,7 +78,8 @@ def test_invalid_amount_rejection_reason():
 
     # Temporarily use the invalid test input
     #original_input = 'INPUT_FILE = Path("data/orders.csv")'
-    original_input = 'INPUT_FILE = Path("data/orders_late.csv")'
+    #original_input = 'INPUT_FILE = Path("data/orders_late.csv")'
+    original_input = 'INPUT_FILE = Path("data/orders.csv")'
     test_input_line = 'INPUT_FILE = Path("data/orders_test_invalid.csv")'
 
     pipeline_file.write_text(
