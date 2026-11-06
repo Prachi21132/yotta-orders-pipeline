@@ -5,7 +5,7 @@ from pathlib import Path
 
 # 1. Define the input file
 INPUT_FILE = Path("data/orders.csv")
-
+#INPUT_FILE = Path("data/orders_test_invalid.csv")
 
 # 2. Define output folders
 RAW_FOLDER = Path("data/raw")
@@ -48,6 +48,8 @@ with open(raw_file, "w", newline="") as file:
 
 # 6. Validate orders and detect duplicates
 
+# 6. Validate orders and detect duplicates
+
 valid_orders = []
 rejected_orders = []
 duplicate_orders = []
@@ -57,41 +59,46 @@ seen_order_ids = set()
 for order in orders:
 
     order_id = order["order_id"].strip()
+    customer_id = order["customer_id"].strip()
+    status = order["status"].strip().lower()
+    amount_value = order["amount_inr"].strip()
 
     # Check duplicate order ID
-    if order_id in seen_order_ids:
-
+    if order_id and order_id in seen_order_ids:
         duplicate_orders.append(order)
         continue
 
-    # Remember this order ID
+    # Check required fields
+    if not order_id:
+        order["reject_reason"] = "Missing order_id"
+        rejected_orders.append(order)
+        continue
+
+    if not customer_id:
+        order["reject_reason"] = "Missing customer_id"
+        rejected_orders.append(order)
+        continue
+
+    # Remember order ID after required fields pass
     seen_order_ids.add(order_id)
 
-    # Validate required fields
-    if not order_id or not order["customer_id"].strip():
-
-        rejected_orders.append(order)
-        continue
-
     # Validate status
-    if order["status"] not in [
-        "completed",
-        "cancelled",
-        "pending"
-    ]:
-
+    if status not in ["completed", "cancelled", "pending"]:
+        order["reject_reason"] = "Invalid status"
         rejected_orders.append(order)
         continue
 
-    # Validate amount safely
+    # Validate amount
     try:
-        amount = float(order["amount_inr"])
+        amount = float(amount_value)
 
         if amount <= 0:
+            order["reject_reason"] = "Amount must be greater than zero"
             rejected_orders.append(order)
             continue
 
     except (ValueError, TypeError):
+        order["reject_reason"] = "Amount is not numeric"
         rejected_orders.append(order)
         continue
 
@@ -103,6 +110,8 @@ print("Validation completed!")
 print("Valid orders:", len(valid_orders))
 print("Rejected orders:", len(rejected_orders))
 print("Duplicate orders:", len(duplicate_orders))
+
+
 
 
 
@@ -122,17 +131,28 @@ with open(valid_file, "w", newline="") as file:
 
 
 # 8. Save rejected orders
+
+# 8. Save rejected orders
+
 reject_file = VALID_FOLDER / "orders_rejected.csv"
 
+#reject_fields = list(orders[0].keys()) + ["reject_reason"]
+reject_fields = [
+    field for field in orders[0].keys()
+    if field != "reject_reason"
+]
+
+reject_fields.append("reject_reason")
 with open(reject_file, "w", newline="") as file:
 
     writer = csv.DictWriter(
         file,
-        fieldnames=orders[0].keys()
+        fieldnames=reject_fields
     )
 
     writer.writeheader()
     writer.writerows(rejected_orders)
+
 
 # 8.1 Save duplicate orders
 

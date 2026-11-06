@@ -5,3 +5,6 @@ data/orders_backup.csv
 data/raw/
 data/validated/
 data/curated/
+
+data/orders_test.csv
+data/orders_test_invalid.csv
