@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+data/orders_backup.csv
+data/raw/
+data/validated/
+data/curated/
