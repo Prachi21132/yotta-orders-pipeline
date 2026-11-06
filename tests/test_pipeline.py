@@ -77,7 +77,8 @@ def test_invalid_amount_rejection_reason():
     pipeline_code = pipeline_file.read_text()
 
     # Temporarily use the invalid test input
-    original_input = 'INPUT_FILE = Path("data/orders.csv")'
+    #original_input = 'INPUT_FILE = Path("data/orders.csv")'
+    original_input = 'INPUT_FILE = Path("data/orders_late.csv")'
     test_input_line = 'INPUT_FILE = Path("data/orders_test_invalid.csv")'
 
     pipeline_file.write_text(
@@ -96,7 +97,8 @@ def test_invalid_amount_rejection_reason():
         assert result.returncode == 0
 
         # Read rejected orders
-        reject_file = PROJECT_ROOT / "data/validated/orders_rejected.csv"
+        #reject_file = PROJECT_ROOT / "data/validated/orders_rejected.csv"
+        reject_file = PROJECT_ROOT / "data/validated/orders_test_invalid_rejected.csv"
 
         with open(reject_file, "r", newline="") as file:
             reader = csv.DictReader(file)

@@ -1,0 +1,6 @@
+file_name,processed_at,record_count
+orders.csv,2026-11-07 02:35:57,100
+orders_test.csv,2026-11-07 02:38:10,100
+orders_test2.csv,2026-11-07 02:46:43,100
+orders_late.csv,2026-11-07 02:49:07,100
+orders_test_invalid.csv,2026-11-07 02:53:42,100
