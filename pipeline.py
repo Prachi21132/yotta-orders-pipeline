@@ -123,21 +123,44 @@ print("Total orders read:", len(orders))
 if not orders:
     print("Input file contains no data records.")
     sys.exit()
-
-# 4.2 Validate required columns
+# 4.2 Validate required and unexpected columns
 required_columns = {
     "order_id",
     "customer_id",
     "order_ts",
     "status",
     "amount_inr"
+    "updated_at"
 }
 
-missing_columns = required_columns - set(columns or [])
+expected_columns = {
+    "order_id",
+    "customer_id",
+    "order_ts",
+    "status",
+    "amount_inr",
+    "updated_at"
+}
+
+actual_columns = set(columns or [])
+
+# Check missing required columns
+missing_columns = required_columns - actual_columns
 
 if missing_columns:
     print("Missing required columns:", sorted(missing_columns))
     sys.exit()
+
+# Check unexpected columns
+unexpected_columns = actual_columns - expected_columns
+
+if unexpected_columns:
+    print("Unexpected columns detected:", sorted(unexpected_columns))
+    print("Input schema does not match expected schema.")
+    sys.exit()
+
+print("Schema validation passed!")
+
 
 
 
