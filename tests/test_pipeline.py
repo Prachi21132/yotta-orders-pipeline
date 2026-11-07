@@ -4,6 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 import os
+from partition_utils import get_existing_order_ids
 
 
 # Project root folder
@@ -134,3 +135,39 @@ def test_date_partitioned_curated_orders():
             assert order["order_ts"].startswith(partition_date)
 
     assert total_orders == 106
+
+def test_duplicate_order_id_across_different_dates(tmp_path):
+
+    partitioned_folder = tmp_path / "partitioned"
+
+    # Existing order in the first date partition
+    first_partition = (
+        partitioned_folder / "order_date=2026-11-01"
+    )
+
+    first_partition.mkdir(parents=True)
+
+    with open(first_partition / "orders.csv", "w", newline="") as file:
+
+        writer = csv.DictWriter(
+            file,
+            fieldnames=["order_id", "order_ts"]
+        )
+
+        writer.writeheader()
+
+        writer.writerow({
+            "order_id": "O001",
+            "order_ts": "2026-11-01T10:00:00"
+        })
+
+    # Check IDs across all partitions
+    existing_ids = get_existing_order_ids(partitioned_folder)
+
+    # Same ID arriving on a different date must be detected
+    new_order = {
+        "order_id": "O001",
+        "order_ts": "2026-11-02T10:00:00"
+    }
+
+    assert new_order["order_id"] in existing_ids

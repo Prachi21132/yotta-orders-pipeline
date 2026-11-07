@@ -7,7 +7,7 @@ from datetime import datetime
 import sys
 import hashlib
 import os
-
+from partition_utils import get_existing_order_ids
 
 def calculate_file_hash(file_path):
     sha256 = hashlib.sha256()
@@ -287,23 +287,9 @@ for order in valid_orders:
 
     partition_file = partition_folder / "orders.csv"
 
-    existing_order_ids = set()
-
-    # Check all date partitions
-    if PARTITIONED_FOLDER.exists():
-
-        for folder in PARTITIONED_FOLDER.iterdir():
-
-            existing_file = folder / "orders.csv"
-
-            if existing_file.exists():
-
-                with open(existing_file, "r", newline="") as file:
-
-                    reader = csv.DictReader(file)
-
-                    for row in reader:
-                        existing_order_ids.add(row["order_id"])
+    existing_order_ids = get_existing_order_ids(
+    PARTITIONED_FOLDER
+)
 
     # Skip duplicate order IDs across all partitions
     if order["order_id"] in existing_order_ids:
