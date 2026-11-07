@@ -416,7 +416,40 @@ The test suite currently contains eight tests covering:
 
 The cross-date duplicate test independently verifies the partition lookup helper using temporary test data.
 
+## Performance Measurement and Optimization
 
+### Performance Measurement
+
+The pipeline was tested locally using a sample input containing 100 orders.
+
+| Metric | Result |
+|---|---:|
+| Input records | 100 |
+| Valid records | 99 |
+| Rejected records | 1 |
+| Pipeline execution time | 0.057801 seconds |
+| Automated test suite execution time | 0.772829 seconds |
+| Automated tests passed | 8 |
+
+The pipeline execution time was recorded in the pipeline run history. The automated test suite runtime was measured separately using PowerShell's `Measure-Command`.
+
+These measurements represent a small local test and are not a large-scale performance benchmark.
+
+### Optimization
+
+The original partition duplicate-checking logic loaded existing order IDs repeatedly while processing orders.
+
+The optimized implementation loads existing order IDs from the date-based partitions once before processing the valid orders.
+
+A set is used for duplicate lookup, and newly written order IDs are added to the set.
+
+This avoids repeatedly scanning partition files for every order and improves duplicate-checking efficiency.
+
+### Performance Considerations
+
+- The current performance measurement uses a small sample dataset.
+- Larger datasets should be tested to evaluate scalability.
+- Partition lookup and file processing can be further optimized for larger workloads.
 
 \## Future Improvements
 
