@@ -470,6 +470,7 @@ Detailed project documentation:
 - [Architecture](docs/architecture.md) - Pipeline workflow, processing components, storage layers, and limitations.
 - [Design Decisions](docs/design_decisions.md) - Design choices, trade-offs, duplicate handling, late-arriving data, and performance considerations.
 - [AI Usage Disclosure](docs/AI_USAGE.md) - AI assistance, representative prompt history, personal review, validation, and limitations.
+- [AI Prompt History](docs/AI_PROMPT_HISTORY.md) - Index of 31 shared ChatGPT conversations for this project.
 
 
 ## Author
