@@ -275,9 +275,6 @@ with open(curated_file, "w", newline="") as file:
 
 # 9. Create date-partitioned curated output
 
-
-# 9. Create date-partitioned curated output
-
 PARTITIONED_FOLDER = CURATED_FOLDER / "partitioned"
 
 for order in valid_orders:
@@ -292,15 +289,23 @@ for order in valid_orders:
 
     existing_order_ids = set()
 
-    if partition_file.exists():
+    # Check all date partitions
+    if PARTITIONED_FOLDER.exists():
 
-        with open(partition_file, "r", newline="") as file:
+        for folder in PARTITIONED_FOLDER.iterdir():
 
-            reader = csv.DictReader(file)
+            existing_file = folder / "orders.csv"
 
-            for row in reader:
-                existing_order_ids.add(row["order_id"])
+            if existing_file.exists():
 
+                with open(existing_file, "r", newline="") as file:
+
+                    reader = csv.DictReader(file)
+
+                    for row in reader:
+                        existing_order_ids.add(row["order_id"])
+
+    # Skip duplicate order IDs across all partitions
     if order["order_id"] in existing_order_ids:
 
         print("Order already exists:", order["order_id"])
@@ -321,6 +326,7 @@ for order in valid_orders:
         writer.writerow(order)
 
 print("Date-partitioned curated data saved!")
+
 
 # 10. Save processed file metadata
 
