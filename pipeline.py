@@ -405,8 +405,6 @@ with open(duplicate_file, "w", newline="") as file:
 
 # 9. Create curated output
 
-curated_file = CURATED_FOLDER / "orders_curated.csv"
-
 with open(curated_file, "w", newline="") as file:
 
     writer = csv.DictWriter(
