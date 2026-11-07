@@ -3,6 +3,7 @@ import csv
 import subprocess
 import sys
 from pathlib import Path
+import os
 
 
 # Project root folder
@@ -68,59 +69,40 @@ def test_curated_orders_count():
 
     assert len(orders) == 100
 
+
 def test_invalid_amount_rejection_reason():
 
     test_input = PROJECT_ROOT / "data/orders_test_invalid.csv"
-    pipeline_file = PROJECT_ROOT / "pipeline.py"
 
-    # Read the current pipeline code
-    pipeline_code = pipeline_file.read_text()
+    # Set the input file through an environment variable
+    env = os.environ.copy()
+    env["PIPELINE_INPUT_FILE"] = str(test_input)
 
-    # Temporarily use the invalid test input
-    #original_input = 'INPUT_FILE = Path("data/orders.csv")'
-    #original_input = 'INPUT_FILE = Path("data/orders_late.csv")'
-    original_input = 'INPUT_FILE = Path("data/orders.csv")'
-    test_input_line = 'INPUT_FILE = Path("data/orders_test_invalid.csv")'
-
-    pipeline_file.write_text(
-        pipeline_code.replace(original_input, test_input_line)
+    # Run the pipeline
+    result = subprocess.run(
+        [sys.executable, "pipeline.py"],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        env=env
     )
 
-    try:
-        # Run the pipeline
-        result = subprocess.run(
-            [sys.executable, "pipeline.py"],
-            cwd=PROJECT_ROOT,
-            capture_output=True,
-            text=True
-        )
+    assert result.returncode == 0
 
-        assert result.returncode == 0
+    # Read rejected orders
+    reject_file = (
+        PROJECT_ROOT
+        / "data/validated/orders_test_invalid_rejected.csv"
+    )
 
-        # Read rejected orders
-        #reject_file = PROJECT_ROOT / "data/validated/orders_rejected.csv"
-        reject_file = PROJECT_ROOT / "data/validated/orders_test_invalid_rejected.csv"
+    with open(reject_file, "r", newline="") as file:
+        reader = csv.DictReader(file)
+        rejected_orders = list(reader)
 
-        with open(reject_file, "r", newline="") as file:
-            reader = csv.DictReader(file)
-            rejected_orders = list(reader)
-
-        # Check rejection
-        assert len(rejected_orders) == 1
-        assert rejected_orders[0]["order_id"] == "O001"
-        assert rejected_orders[0]["reject_reason"] == "Amount is not numeric"
-
-    finally:
-        # Restore the original pipeline input
-        pipeline_file.write_text(pipeline_code)
-
-        # Run the normal pipeline again
-        subprocess.run(
-            [sys.executable, "pipeline.py"],
-            cwd=PROJECT_ROOT,
-            capture_output=True,
-            text=True
-        )
+    # Check rejection
+    assert len(rejected_orders) == 1
+    assert rejected_orders[0]["order_id"] == "O001"
+    assert rejected_orders[0]["reject_reason"] == "Amount is not numeric"
 
 def test_date_partitioned_curated_orders():
 
