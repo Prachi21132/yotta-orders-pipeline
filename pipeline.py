@@ -25,6 +25,7 @@ def calculate_file_hash(file_path):
 #INPUT_FILE = Path("data/orders_late.csv")
 #INPUT_FILE = Path("data/orders_copy.csv")
 INPUT_FILE = Path("data/orders.csv")
+#INPUT_FILE = Path("data/orders_late_new.csv")
 # 2. Define output folders
 
 RAW_FOLDER = Path("data/raw")
@@ -234,7 +235,8 @@ with open(duplicate_file, "w", newline="") as file:
 
 
 # 9. Create curated output
-#curated_file = CURATED_FOLDER / "orders_curated.csv"
+
+curated_file = CURATED_FOLDER / "orders_curated.csv"
 
 with open(curated_file, "w", newline="") as file:
 
@@ -247,36 +249,83 @@ with open(curated_file, "w", newline="") as file:
     writer.writerows(valid_orders)
 
 
-# 10. Print pipeline summary
-print("Pipeline completed successfully!")
+# 9. Create date-partitioned curated output
 
-print("Raw orders:", len(orders))
-print("Valid orders:", len(valid_orders))
-print("Rejected orders:", len(rejected_orders))
-print("Duplicate orders:", len(duplicate_orders))
-print("Duplicate file:", duplicate_file)
 
-print("Raw file:", raw_file)
-print("Validated file:", valid_file)
-print("Curated file:", curated_file)
+# 9. Create date-partitioned curated output
 
-# 11. Record successfully processed file
+PARTITIONED_FOLDER = CURATED_FOLDER / "partitioned"
+
+for order in valid_orders:
+
+    order_date = order["order_ts"][:10]
+
+    partition_folder = PARTITIONED_FOLDER / f"order_date={order_date}"
+
+    partition_folder.mkdir(parents=True, exist_ok=True)
+
+    partition_file = partition_folder / "orders.csv"
+
+    existing_order_ids = set()
+
+    if partition_file.exists():
+
+        with open(partition_file, "r", newline="") as file:
+
+            reader = csv.DictReader(file)
+
+            for row in reader:
+                existing_order_ids.add(row["order_id"])
+
+    if order["order_id"] in existing_order_ids:
+
+        print("Order already exists:", order["order_id"])
+        continue
+
+    file_exists = partition_file.exists()
+
+    with open(partition_file, "a", newline="") as file:
+
+        writer = csv.DictWriter(
+            file,
+            fieldnames=orders[0].keys()
+        )
+
+        if not file_exists or partition_file.stat().st_size == 0:
+            writer.writeheader()
+
+        writer.writerow(order)
+
+print("Date-partitioned curated data saved!")
+
+# 10. Save processed file metadata
+
+METADATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+file_exists = METADATA_FILE.exists()
 
 with open(METADATA_FILE, "a", newline="") as file:
 
+    fieldnames = [
+        "file_name",
+        "processed_at",
+        "record_count",
+        "file_hash"
+    ]
+
     writer = csv.DictWriter(
         file,
-        fieldnames=["file_name", "processed_at", "record_count", "file_hash"]
-        #fieldnames=["file_name", "processed_at", "record_count"]
+        fieldnames=fieldnames
     )
 
+    if not file_exists or METADATA_FILE.stat().st_size == 0:
+        writer.writeheader()
+
     writer.writerow({
-    "file_name": INPUT_FILE.name,
-    "processed_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    "record_count": len(orders),
-    "file_hash": input_file_hash
-})
+        "file_name": INPUT_FILE.name,
+        "processed_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "record_count": len(orders),
+        "file_hash": input_file_hash
+    })
 
-print("File processing history updated!")
-
-
+print("Processed file metadata saved!")

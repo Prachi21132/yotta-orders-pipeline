@@ -121,3 +121,34 @@ def test_invalid_amount_rejection_reason():
             capture_output=True,
             text=True
         )
+
+def test_date_partitioned_curated_orders():
+
+    partition_folder = (
+        PROJECT_ROOT / "data/curated/partitioned"
+    )
+
+    partition_files = list(
+        partition_folder.glob("order_date=*/orders.csv")
+    )
+
+    assert len(partition_files) > 0
+
+    total_orders = 0
+
+    for partition_file in partition_files:
+
+        with open(partition_file, "r", newline="") as file:
+            reader = csv.DictReader(file)
+            orders = list(reader)
+
+        total_orders += len(orders)
+
+        partition_date = partition_file.parent.name.replace(
+            "order_date=", ""
+        )
+
+        for order in orders:
+            assert order["order_ts"].startswith(partition_date)
+
+    assert total_orders == 100
