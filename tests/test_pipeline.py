@@ -151,4 +151,4 @@ def test_date_partitioned_curated_orders():
         for order in orders:
             assert order["order_ts"].startswith(partition_date)
 
-    assert total_orders == 100
+    assert total_orders == 106

@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime
 import sys
 import hashlib
+import os
 
 
 def calculate_file_hash(file_path):
@@ -19,12 +20,13 @@ def calculate_file_hash(file_path):
 
 # 1. Define the input file
 #INPUT_FILE = Path("data/orders.csv")
+INPUT_FILE = Path(os.environ.get("PIPELINE_INPUT_FILE", "data/orders.csv"))
 #INPUT_FILE = Path("data/orders_test_invalid.csv")
 #INPUT_FILE = Path("data/orders_test.csv")
 #INPUT_FILE = Path("data/orders_test2.csv")
 #INPUT_FILE = Path("data/orders_late.csv")
 #INPUT_FILE = Path("data/orders_copy.csv")
-INPUT_FILE = Path("data/orders.csv")
+#INPUT_FILE = Path("data/orders.csv")
 #INPUT_FILE = Path("data/orders_late_new.csv")
 # 2. Define output folders
 
@@ -96,7 +98,6 @@ print("Previously processed file hashes:", processed_hashes)
 input_file_hash = calculate_file_hash(INPUT_FILE)
 
 # 3.3 Check whether the file content was already processed
-
 if input_file_hash in processed_hashes:
 
     print("Duplicate file content detected.")

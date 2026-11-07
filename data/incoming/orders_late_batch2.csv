@@ -1,0 +1,4 @@
+order_id,customer_id,order_ts,status,amount_inr,updated_at
+O201,C001,2026-11-01T10:00:00,completed,1500.0,2026-11-03T09:00:00
+O202,C002,2026-11-01T11:00:00,pending,2500.0,2026-11-03T09:30:00
+O203,C003,2026-11-02T12:00:00,completed,3200.0,2026-11-03T10:00:00
