@@ -107,6 +107,7 @@ if input_file_hash in processed_hashes:
 
 
 
+
 # 4. Read the source data
 with open(INPUT_FILE, "r", newline="") as file:
 
@@ -114,8 +115,30 @@ with open(INPUT_FILE, "r", newline="") as file:
 
     orders = list(reader)
 
+    columns = reader.fieldnames
 
 print("Total orders read:", len(orders))
+
+# 4.1 Handle empty input
+if not orders:
+    print("Input file contains no data records.")
+    sys.exit()
+
+# 4.2 Validate required columns
+required_columns = {
+    "order_id",
+    "customer_id",
+    "order_ts",
+    "status",
+    "amount_inr"
+}
+
+missing_columns = required_columns - set(columns or [])
+
+if missing_columns:
+    print("Missing required columns:", sorted(missing_columns))
+    sys.exit()
+
 
 
 # 5. Save original data in raw zone
@@ -132,9 +155,6 @@ with open(raw_file, "w", newline="") as file:
     writer.writerows(orders)
 
 
-# 6. Validate orders
-
-# 6. Validate orders and detect duplicates
 
 # 6. Validate orders and detect duplicates
 
@@ -167,8 +187,16 @@ for order in orders:
         rejected_orders.append(order)
         continue
 
-    # Remember order ID after required fields pass
-    seen_order_ids.add(order_id)
+    # Validate order timestamp
+    order_ts = order["order_ts"].strip()
+
+    try:
+        datetime.fromisoformat(order_ts)
+
+    except (ValueError, TypeError):
+        order["reject_reason"] = "Invalid order timestamp"
+        rejected_orders.append(order)
+        continue
 
     # Validate status
     if status not in ["completed", "cancelled", "pending"]:
@@ -191,6 +219,7 @@ for order in orders:
         continue
 
     # If all checks pass
+    seen_order_ids.add(order_id)
     valid_orders.append(order)
 
 
@@ -198,9 +227,6 @@ print("Validation completed!")
 print("Valid orders:", len(valid_orders))
 print("Rejected orders:", len(rejected_orders))
 print("Duplicate orders:", len(duplicate_orders))
-
-
-
 
 
 
