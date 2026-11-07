@@ -8,7 +8,15 @@ import sys
 import hashlib
 import os
 from partition_utils import get_existing_order_ids
+import uuid
+# 0. Track pipeline execution
 
+run_id = str(uuid.uuid4())
+
+pipeline_start_time = datetime.now()
+
+print("Run ID:", run_id)
+print("Pipeline start time:", pipeline_start_time)
 def calculate_file_hash(file_path):
     sha256 = hashlib.sha256()
 
@@ -35,6 +43,47 @@ VALID_FOLDER = Path("data/validated")
 CURATED_FOLDER = Path("data/curated")
 # 2.1 Define metadata file
 METADATA_FILE = Path("data/metadata/processed_files.csv")
+RUN_HISTORY_FILE = Path("data/metadata/pipeline_runs.csv")
+def record_pipeline_run(input_count, valid_count, rejected_count, duplicate_count, status):
+    pipeline_end_time = datetime.now()
+
+    RUN_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    file_exists = RUN_HISTORY_FILE.exists()
+
+    fieldnames = [
+        "run_id",
+        "input_file",
+        "start_time",
+        "end_time",
+        "duration_seconds",
+        "input_count",
+        "valid_count",
+        "rejected_count",
+        "duplicate_count",
+        "status"
+    ]
+
+    with open(RUN_HISTORY_FILE, "a", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+
+        if not file_exists or RUN_HISTORY_FILE.stat().st_size == 0:
+            writer.writeheader()
+
+        writer.writerow({
+            "run_id": run_id,
+            "input_file": INPUT_FILE.name,
+            "start_time": pipeline_start_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "end_time": pipeline_end_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "duration_seconds": (pipeline_end_time - pipeline_start_time).total_seconds(),
+            "input_count": input_count,
+            "valid_count": valid_count,
+            "rejected_count": rejected_count,
+            "duplicate_count": duplicate_count,
+            "status": status
+        })
+
+    print("Pipeline run history saved with status:", status)
 # 2.2 Create output filenames based on input filename
 
 file_name = INPUT_FILE.stem
@@ -95,6 +144,13 @@ print("Previously processed file hashes:", processed_hashes)
 
 # 3.2 Calculate hash of the current input file
 
+if not INPUT_FILE.exists():
+    print("Input file does not exist:", INPUT_FILE)
+
+    record_pipeline_run(0, 0, 0, 0, "FAILED_MISSING_FILE")
+
+    sys.exit()
+
 input_file_hash = calculate_file_hash(INPUT_FILE)
 
 # 3.3 Check whether the file content was already processed
@@ -102,6 +158,8 @@ if input_file_hash in processed_hashes:
 
     print("Duplicate file content detected.")
     print("This file has already been processed.")
+
+    record_pipeline_run(0, 0, 0, 0, "DUPLICATE_FILE")
 
     sys.exit()
 
@@ -122,6 +180,9 @@ print("Total orders read:", len(orders))
 # 4.1 Handle empty input
 if not orders:
     print("Input file contains no data records.")
+
+    record_pipeline_run(0, 0, 0, 0, "FAILED_EMPTY_INPUT")
+
     sys.exit()
 # 4.2 Validate required and unexpected columns
 required_columns = {
@@ -129,7 +190,7 @@ required_columns = {
     "customer_id",
     "order_ts",
     "status",
-    "amount_inr"
+    "amount_inr",
     "updated_at"
 }
 
@@ -149,6 +210,11 @@ missing_columns = required_columns - actual_columns
 
 if missing_columns:
     print("Missing required columns:", sorted(missing_columns))
+
+    record_pipeline_run(
+        len(orders), 0, 0, 0, "FAILED_MISSING_COLUMNS"
+    )
+
     sys.exit()
 
 # Check unexpected columns
@@ -157,6 +223,11 @@ unexpected_columns = actual_columns - expected_columns
 if unexpected_columns:
     print("Unexpected columns detected:", sorted(unexpected_columns))
     print("Input schema does not match expected schema.")
+
+    record_pipeline_run(
+        len(orders), 0, 0, 0, "FAILED_UNEXPECTED_COLUMNS"
+    )
+
     sys.exit()
 
 print("Schema validation passed!")
@@ -394,3 +465,18 @@ with open(METADATA_FILE, "a", newline="") as file:
     })
 
 print("Processed file metadata saved!")
+# 11. Record pipeline end time
+
+pipeline_end_time = datetime.now()
+
+print("Pipeline end time:", pipeline_end_time)
+
+print("Pipeline duration:", pipeline_end_time - pipeline_start_time)
+# 12. Save pipeline run history
+record_pipeline_run(
+    len(orders),
+    len(valid_orders),
+    len(rejected_orders),
+    len(duplicate_orders),
+    "SUCCESS"
+)
