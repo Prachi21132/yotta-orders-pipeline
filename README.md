@@ -451,24 +451,26 @@ This avoids repeatedly scanning partition files for every order and improves dup
 - Larger datasets should be tested to evaluate scalability.
 - Partition lookup and file processing can be further optimized for larger workloads.
 
-\## Future Improvements
+## Future Improvements
+
+- Add structured logging with configurable log levels.
+- Improve automated test isolation and coverage.
+- Optimize storage and duplicate lookup for larger workloads.
+- Add validation for the `updated_at` timestamp.
+- Add continuous monitoring for incoming files.
+- Explore cloud object storage and distributed processing for larger workloads.
 
 
-
-\- Add structured logging and detailed error reporting.
-
-\- Improve automated test isolation using temporary directories.
-
-\- Optimize duplicate detection for larger datasets.
-
-\- Add schema validation and configurable validation rules.
-
-\- Add continuous monitoring for incoming files.
+## Additional Documentation
 
 
+Detailed project documentation:
 
-\## Author
+- [Data Dictionary](docs/data_dictionary.md) - Input schema, data types, validation rules, keys, and assumptions.
+- [Architecture](docs/architecture.md) - Pipeline workflow, processing components, storage layers, and limitations.
+- [Design Decisions](docs/design_decisions.md) - Design choices, trade-offs, duplicate handling, late-arriving data, and performance considerations.
 
 
+## Author
 
 Developed as part of the YottaFlex AI Data Engineering Code Challenge.
