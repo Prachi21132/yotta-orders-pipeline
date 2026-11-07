@@ -397,6 +397,9 @@ with open(curated_file, "w", newline="") as file:
 
 PARTITIONED_FOLDER = CURATED_FOLDER / "partitioned"
 
+# Load existing order IDs only once
+existing_order_ids = get_existing_order_ids(PARTITIONED_FOLDER)
+
 for order in valid_orders:
 
     order_date = order["order_ts"][:10]
@@ -406,11 +409,6 @@ for order in valid_orders:
     partition_folder.mkdir(parents=True, exist_ok=True)
 
     partition_file = partition_folder / "orders.csv"
-
-    existing_order_ids = get_existing_order_ids(
-    PARTITIONED_FOLDER
-)
-
     # Skip duplicate order IDs across all partitions
     if order["order_id"] in existing_order_ids:
 
@@ -430,6 +428,7 @@ for order in valid_orders:
             writer.writeheader()
 
         writer.writerow(order)
+        existing_order_ids.add(order["order_id"])
 
 print("Date-partitioned curated data saved!")
 
