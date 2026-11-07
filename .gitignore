@@ -13,3 +13,4 @@ data/orders_late.csv
 data/orders_test2.csv
 
 data/orders_copy.csv
+data/metadata/processed_files_backup*.csv
