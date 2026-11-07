@@ -469,6 +469,7 @@ Detailed project documentation:
 - [Data Dictionary](docs/data_dictionary.md) - Input schema, data types, validation rules, keys, and assumptions.
 - [Architecture](docs/architecture.md) - Pipeline workflow, processing components, storage layers, and limitations.
 - [Design Decisions](docs/design_decisions.md) - Design choices, trade-offs, duplicate handling, late-arriving data, and performance considerations.
+- [AI Usage Disclosure](docs/AI_USAGE.md) - AI assistance, representative prompt history, personal review, validation, and limitations.
 
 
 ## Author
