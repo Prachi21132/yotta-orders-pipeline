@@ -55,12 +55,35 @@ CURATED_FOLDER.mkdir(parents=True, exist_ok=True)
 
 # 3.1 Read previously processed file hashes
 
+
+# 3.1 Read previously processed file hashes
+
+METADATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+if not METADATA_FILE.exists():
+
+    with open(METADATA_FILE, "w", newline="") as file:
+
+        writer = csv.DictWriter(
+            file,
+            fieldnames=[
+                "file_name",
+                "processed_at",
+                "record_count",
+                "file_hash"
+            ]
+        )
+
+        writer.writeheader()
+
 processed_hashes = []
 
 with open(METADATA_FILE, "r", newline="") as file:
+
     reader = csv.DictReader(file)
 
     for row in reader:
+
         file_hash = row.get("file_hash", "")
 
         if file_hash:
