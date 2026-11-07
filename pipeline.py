@@ -321,6 +321,31 @@ print("Validation completed!")
 print("Valid orders:", len(valid_orders))
 print("Rejected orders:", len(rejected_orders))
 print("Duplicate orders:", len(duplicate_orders))
+# 6.1 Reconcile input order counts
+accounted_orders = (
+    len(valid_orders)
+    + len(rejected_orders)
+    + len(duplicate_orders)
+)
+
+print("Total input orders:", len(orders))
+print("Total accounted orders:", accounted_orders)
+
+if len(orders) != accounted_orders:
+
+    print("ERROR: Order count reconciliation failed!")
+
+    record_pipeline_run(
+        len(orders),
+        len(valid_orders),
+        len(rejected_orders),
+        len(duplicate_orders),
+        "FAILED_RECONCILIATION"
+    )
+
+    sys.exit()
+
+print("Order count reconciliation passed!")
 
 
 
